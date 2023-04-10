@@ -1,0 +1,26 @@
+{
+    "name": "LexiQuiz",
+    "version": "1.0.0",
+    "description": "It will store the words you search in a dictionary(right now it only supports Longman.com) and it will take a quiz based on your history of words.",
+    "manifest_version": 2,
+    "browser_action": {
+      "default_icon": "icon.png",
+      "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": ["js/background.js"]
+      },
+      
+    "permissions": [
+      "storage",
+      "tabs"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["https://www.ldoceonline.com/*"],
+        "js": ["js/content_script.js"],
+        "run_at": "document_idle"
+      }
+    ]
+  }
+  
