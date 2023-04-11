@@ -17,29 +17,7 @@ window.addEventListener('beforeunload', function (event) {
         console.log("My Extension log: message is received empty")
       }
     });
+    console.log("My extension log: input bar before change is " + inputElement.value)
 })
-
-
-// Add an event listener to the input element
-inputElement.addEventListener('keydown', function (event) {
-  // If the user has pressed the Enter key (keyCode 13)
-  if (event.keyCode === 13) {
-    console.log("My Extension log: enter key has been pressed")
-    // Get the text from the input element
-    const searchText = inputElement.value;
-    // send the entered message to background
-    chrome.runtime.sendMessage({
-        action: 'enteredKey',
-        data: searchText
-      },
-      function (response) {
-        if (response && response.message) {
-          console.log(response.message);
-        } else {
-          console.log("My Extension log: message is received empty")
-        }
-      });
-  }
-});
 
 console.log("My Extension log: hello from not background")
