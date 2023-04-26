@@ -1,24 +1,5 @@
 let db = null;
 
-console.log("My Extension log: hello from background");
-
-chrome.tabs.onActivated.addListener(function (activeInfo) {
-  chrome.tabs.query({
-    currentWindow: true,
-    active: true
-  }, function (tabs) {
-    check_to_init_close_DB(tabs[0].url);
-  });
-});
-
-function check_to_init_close_DB(currentTab) {
-  if (currentTab.includes("https://www.ldoceonline.com/") && db === null) {
-    initDB();
-  } else if (!currentTab.includes("https://www.ldoceonline.com/") && db !== null) {
-    closeDB();
-  }
-}
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   console.log("My Extension log: received a message");
   if (request.action === "enteredKey") {
@@ -42,7 +23,7 @@ window.addEventListener("unload", function () {
   console.log("My Extension log: Background script unloaded");
 });
 
-function initDB() {
+function addWordToDB(word) {
   const request = window.indexedDB.open("LexiDB", 1);
 
   request.onupgradeneeded = (event) => {
@@ -58,8 +39,9 @@ function initDB() {
   };
 
   request.onsuccess = (event) => {
-    db = event.target.result;
     console.log("Database initialized successfully");
+    db = event.target.result;
+    addingToDB(word)
   };
 
   request.onerror = (event) => {
@@ -67,13 +49,7 @@ function initDB() {
   };
 }
 
-function closeDB() {
-  db.close();
-  db = null;
-  console.log("My Extension log: Database closed successfully");
-}
-
-function addWordToDB(word) {
+function addingToDB(word) {
   const transaction = db.transaction(["savedWord"], "readwrite");
   const objectStore = transaction.objectStore("savedWord");
 
@@ -89,6 +65,9 @@ function addWordToDB(word) {
 
       addRequest.onsuccess = function (event) {
         console.log("My Extension log: Data added successfully");
+        db.close();
+        db = null;
+        console.log("My Extension log: Database closed successfully");
       };
       addRequest.onerror = function (event) {
         console.error("My Extension log: Failed to update data:", event.target.error);
@@ -103,15 +82,22 @@ function addWordToDB(word) {
 
       addRequest.onsuccess = () => {
         console.log("My Extension log: Data added successfully");
+        db.close();
+        db = null;
+        console.log("My Extension log: Database closed successfully");
       };
 
       addRequest.onerror = (event) => {
+        db.close();
+        db = null;
         console.error("My Extension log: Error adding data", event.target.error);
       };
     }
   };
 
-  getRequest.onerror = function (error) {
+  getRequest.onerror = function (event) {
+    db.close();
+    db = null;
     console.error("My Extension log: Failed to get data:", event.target.error);
   };
 }
