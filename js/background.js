@@ -16,6 +16,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         message: "Data saved successfully"
       });
     }
+  } else if (request.action === "getData") {
+    getFromDB().then((data) => {
+      sendResponse({
+        success: true,
+        data: data
+      });
+    }).catch((error) => {
+      sendResponse({
+        success: false,
+        error: error.message
+      });
+    });
+    // Tell Chrome that we will send the response asynchronously
+    return true;
   }
 });
 
@@ -115,4 +129,48 @@ function deleteWordFromDB(word) {
   deleteRequest.onerror = (event) => {
     console.error("My Extension log: Error deleting data", event.target.error);
   };
+}
+
+function getFromDB() {
+  return new Promise((resolve, reject) => {
+    // Open the database
+    const request = window.indexedDB.open("LexiDB", 1);
+
+    // Handle database open success
+    request.onsuccess = (event) => {
+      db = event.target.result;
+
+      // Open a read-only transaction on the savedWord object store
+      const transaction = db.transaction("savedWord", "readonly");
+      const objectStore = transaction.objectStore("savedWord");
+
+      // Get all objects in the object store
+      const getAllRequest = objectStore.getAll();
+
+      // Handle getAll success
+      getAllRequest.onsuccess = (event) => {
+        // Get the first 10 items in the array
+        const data = event.target.result.slice(0, 10);
+
+        // Resolve the promise with the data
+        resolve(data);
+        db.close()
+        db = null
+      };
+
+      // Handle getAll error
+      getAllRequest.onerror = (event) => {
+        db.close()
+        db = null
+        reject(event.target.error);
+      };
+    };
+
+    // Handle database open error
+    request.onerror = (event) => {
+      db.close()
+      db = null
+      reject(event.target.error);
+    };
+  });
 }
