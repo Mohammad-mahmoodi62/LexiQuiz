@@ -1,7 +1,8 @@
 let db = null;
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log("My Extension log: received a message");
+  console.log("My Extension log: received a message and the action is " + request.action
+  + "and the sender is " + sender.tab);
   if (request.action === "enteredKey") {
     addWordToDB(request.data);
 
@@ -18,6 +19,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
   } else if (request.action === "getData") {
     getFromDB().then((data) => {
+      sendResponse({
+        success: true,
+        data: data
+      });
+    }).catch((error) => {
+      sendResponse({
+        success: false,
+        error: error.message
+      });
+    });
+    // Tell Chrome that we will send the response asynchronously
+    return true;
+  }
+  else if (request.action === "getData2" && sender.tab) {
+    console.log('responding')
+    // sendResponse('kire khar')
+    getFromDB2().then((data) => {
       sendResponse({
         success: true,
         data: data
@@ -246,6 +264,8 @@ async function getFromDB2() {
               answer: quizArr[i].word,
               opt: quizOpt.slice(0, 3).map(item => item.word)
             }
+            question.opt.push(question.answer)
+            shuffleArray(question.opt)
             quizQuestions.push(question)
             shuffleArray(quizOpt)
           }

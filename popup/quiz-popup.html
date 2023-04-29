@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Quiz</title>
+    <link rel="stylesheet" href="default-popup.css">
+</head>
+
+<body>
+    <!-- Add this div to show the spinner -->
+    <div id="spinner-container">
+        <div class="spinner"></div>
+        <!-- Add this CSS for the spinner -->
+        <style>
+            #spinner-container {
+                /* Hide the spinner initially */
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: red;
+            }
+
+            .spinner {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                border: 5px solid rgba(255, 255, 255, 0.5);
+                border-top-color: #fff;
+                animation: spin 1s infinite linear;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </div>
+
+    <div id="quiz-container">
+        <!-- Quiz questions will be added dynamically here -->
+    </div>
+    <button id="submit-btn">Submit</button>
+    <p id="result"></p>
+    <script src="popup.js"></script>
+
+</body>
+
+</html>
