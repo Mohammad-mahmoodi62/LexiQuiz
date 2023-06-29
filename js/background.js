@@ -59,6 +59,7 @@ window.addEventListener("unload", function () {
 });
 
 function addWordToDB(word) {
+    word = word.trimRight()
     const request = window.indexedDB.open("LexiDB", 1);
 
     request.onupgradeneeded = (event) => {
@@ -181,8 +182,8 @@ function getFromDB() {
 
             // Handle getAll success
             getAllRequest.onsuccess = (event) => {
-                // Get the first 10 items in the array
-                const data = event.target.result.slice(0, 10);
+                // Get the first 20 items in the array
+                const data = event.target.result.slice(0, 20);
 
                 // Resolve the promise with the data
                 resolve(data);
@@ -254,14 +255,14 @@ async function getFromDB2() {
 
             // Handle getAll success
             getAllRequest.onsuccess = async (event) => {
-                // Get the first 10 items in the array
+                // Get the first 20 items in the array
                 let data = event.target.result
                 shuffleArray(data)
                 let dataBaseSize = data.length
 
-                let quizArr = data.slice(0, 10)
+                let quizArr = data.slice(0, 20)
                 shuffleArray(data)
-                let quizOpt = data.slice(0, 10)
+                let quizOpt = data.slice(0, 20)
                 db.close()
                 db = null
                 let quizQuestions = []
@@ -273,7 +274,7 @@ async function getFromDB2() {
                         return example;
                     }));
 
-                    for (let i = 0; i < 10; i++) {
+                    for (let i = 0; i < 20; i++) {
                         const question = {
                             question: examplesArr[i],
                             answer: quizArr[i].word,
@@ -354,7 +355,7 @@ function checkAnswers(data) {
 
         getRequest.onsuccess = function (event) {
             const savedWordObj = event.target.result;
-            if (savedWordObj.searchCount === 0 && data.dbSize > 10) {
+            if (savedWordObj.searchCount === 0 && data.dbSize > 20) {
                 const deleteRequest = objectStore.delete(word);
 
                 deleteRequest.onsuccess = (event) => {
