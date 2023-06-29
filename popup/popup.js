@@ -1,7 +1,8 @@
 // Show the spinner before loading the quiz questions
 var spinnerContainer = document.getElementById('spinner-container');
 spinnerContainer.style.display = 'block';
-let quizquestions = []
+let quizquestions = [];
+let dbSize;
 
 chrome.runtime.sendMessage({
     action: "getData2"
@@ -21,8 +22,9 @@ chrome.runtime.sendMessage({
 
         // // Append the list to the document
         // document.body.appendChild(list);
-        prepareQuiz(response.data)
-        quizquestions = response.data
+        prepareQuiz(response.data.quiz)
+        quizquestions = response.data.quiz
+        dbSize = response.data.dbSize
         spinnerContainer.style.display = 'none';
     } else {
         console.error("Error getting data from database: " + response.error);
@@ -78,6 +80,7 @@ submitBtn.addEventListener('click', function() {
 // }
 
 function submitQuiz() {
+    let correctAnswers = []
 	var result = document.getElementById('result');
 	for (var i = 0; i < quizquestions.length; i++) {
 		var answer = quizquestions[i].answer;
@@ -86,6 +89,7 @@ function submitQuiz() {
 			if (selected.value === answer) {
 				selected.parentNode.style.textDecoration = 'underline';
 				selected.parentNode.style.textDecorationColor = 'green';
+                correctAnswers.push(answer)
 			} else {
 				selected.parentNode.style.textDecoration = 'underline';
 				selected.parentNode.style.textDecorationColor = 'red';
@@ -101,5 +105,12 @@ function submitQuiz() {
 	}
 	result.innerHTML = 'Quiz submitted!';
 	submitBtn.style.display = 'none';
+    const data = {dbSize: dbSize, correctAnswers: correctAnswers}
+    chrome.runtime.sendMessage({
+        action: "submitQuiz",
+        data: data
+    }, function (response) {
+        console.log(response)
+    });
 }
 
