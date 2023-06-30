@@ -183,7 +183,9 @@ function getFromDB() {
             // Handle getAll success
             getAllRequest.onsuccess = (event) => {
                 // Get the first 20 items in the array
-                const data = event.target.result.slice(0, 20);
+                sendData = {words: event.target.result.slice(0, 20),
+                dbSize: event.target.result.length}
+                const data = sendData
 
                 // Resolve the promise with the data
                 resolve(data);

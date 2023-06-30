@@ -10,27 +10,37 @@
 // // Add the div element to the page
 // document.body.appendChild(newDiv);
 
-// // Send the "getData" action to the background script
-// chrome.runtime.sendMessage({
-//     action: "getData"
-// }, function (response) {
-//     if (response.success) {
-//         const data = response.data;
-//         const list = document.createElement("ul");
+// Send the "getData" action to the background script
+chrome.runtime.sendMessage({
+    action: "getData"
+}, function (response) {
+    if (response.success) {
+        const data = response.data;
+        data.words.forEach(addItemToList);
+        const numberElement = document.querySelector('#size');
+        numberElement.textContent = data.dbSize;
+    } else {
+        console.error("Error getting data from database: " + response.error);
+    }
+});
 
-//         // Create a bullet point for each item in the data array
-//         data.forEach(function (item) {
-//             const listItem = document.createElement("li");
-//             listItem.innerText = item.word + " - " + item.searchCount;
-//             list.appendChild(listItem);
-//         });
+function addItemToList(item) {
+  const itemList = document.getElementById('item-list');
+  const newItem = document.createElement('div');
+  newItem.classList.add('item');
 
-//         // Append the list to the document
-//         document.body.appendChild(list);
-//     } else {
-//         console.error("Error getting data from database: " + response.error);
-//     }
-// });
+  const itemName = document.createElement('span');
+  itemName.classList.add('item-name');
+  itemName.textContent = item.word + ':';
+  newItem.appendChild(itemName);
+
+  const itemNumber = document.createElement('span');
+  itemNumber.classList.add('item-number');
+  itemNumber.textContent = item.searchCount;
+  newItem.appendChild(itemNumber);
+
+  itemList.appendChild(newItem);
+}
 
 function loadPopup(url) {
     var container = document.getElementById('popup-container');
