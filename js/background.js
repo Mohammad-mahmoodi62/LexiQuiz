@@ -35,7 +35,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     else if (request.action === "getData2" && sender.tab) {
         console.log('responding')
         // sendResponse('kire khar')
-        getFromDB2().then((data) => {
+        getFromDB2(request.type).then((data) => {
             sendResponse({
                 success: true,
                 data: data
@@ -239,7 +239,7 @@ function shuffleArray(array) {
     return array;
 }
 
-async function getFromDB2() {
+async function getFromDB2(quizType) {
     return new Promise((resolve, reject) => {
         // Open the database
         const request = window.indexedDB.open("LexiDB", 1);
@@ -259,10 +259,12 @@ async function getFromDB2() {
             getAllRequest.onsuccess = async (event) => {
                 // Get the first 20 items in the array
                 let data = event.target.result
-                shuffleArray(data)
+                if(quizType === "random") {
+                    shuffleArray(data);
+                }
                 let dataBaseSize = data.length
 
-                let quizArr = data.slice(0, 20)
+                let quizArr = data.slice(0, 10)
                 shuffleArray(data)
                 let quizOpt = data.slice(0, 20)
                 db.close()
@@ -276,7 +278,7 @@ async function getFromDB2() {
                         return example;
                     }));
 
-                    for (let i = 0; i < 20; i++) {
+                    for (let i = 0; i < 10; i++) {
                         const question = {
                             question: examplesArr[i],
                             answer: quizArr[i].word,

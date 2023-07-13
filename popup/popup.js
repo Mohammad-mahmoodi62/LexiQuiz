@@ -1,35 +1,60 @@
 // Show the spinner before loading the quiz questions
-var spinnerContainer = document.getElementById('spinner-container');
-spinnerContainer.style.display = 'block';
+
 let quizquestions = [];
 let dbSize;
+var spinnerContainer = document.getElementById('spinner-container');
+spinnerContainer.style.display = 'none';
 
-chrome.runtime.sendMessage({
-    action: "getData2"
-}, function (response) {
-    console.log('helloooo')
-    console.log(response)
-    if (response.success) {
-        // const data = response.data;
-        // const list = document.createElement("ul");
 
-        // // Create a bullet point for each item in the data array
-        // data.forEach(function (item) {
-        //     const listItem = document.createElement("li");
-        //     listItem.innerText = item.question + " - " + item.answer;
-        //     list.appendChild(listItem);
-        // });
+document.addEventListener("DOMContentLoaded", function () {
+    var randomQuizBtn = document.getElementById("randomQuizBtn");
+    var recentQuizBtn = document.getElementById("recentQuizBtn");
+    var spinnerContainer = document.getElementById('spinner-container');
 
-        // // Append the list to the document
-        // document.body.appendChild(list);
-        prepareQuiz(response.data.quiz)
-        quizquestions = response.data.quiz
-        dbSize = response.data.dbSize
-        spinnerContainer.style.display = 'none';
-    } else {
-        console.error("Error getting data from database: " + response.error);
-    }
+    randomQuizBtn.addEventListener("click", function () {
+        randomQuizBtn.style.display = "none";
+        recentQuizBtn.style.display = "none";
+        spinnerContainer.style.display = 'block';
+        send("random");
+    });
+
+    recentQuizBtn.addEventListener("click", function () {
+        randomQuizBtn.style.display = "none";
+        recentQuizBtn.style.display = "none";
+        spinnerContainer.style.display = 'block';
+        send("recent");
+    });
 });
+
+function send(type) {
+    chrome.runtime.sendMessage({
+        action: "getData2",
+        type: type
+    }, function (response) {
+        console.log('helloooo')
+        console.log(response)
+        if (response.success) {
+            // const data = response.data;
+            // const list = document.createElement("ul");
+
+            // // Create a bullet point for each item in the data array
+            // data.forEach(function (item) {
+            //     const listItem = document.createElement("li");
+            //     listItem.innerText = item.question + " - " + item.answer;
+            //     list.appendChild(listItem);
+            // });
+
+            // // Append the list to the document
+            // document.body.appendChild(list);
+            prepareQuiz(response.data.quiz)
+            quizquestions = response.data.quiz
+            dbSize = response.data.dbSize
+            spinnerContainer.style.display = 'none';
+        } else {
+            console.error("Error getting data from database: " + response.error);
+        }
+    });
+}
 
 function prepareQuiz(quizquestions) {
     // Get the quiz container element
@@ -38,12 +63,12 @@ function prepareQuiz(quizquestions) {
     // Display quiz questions and options
     for (var i = 0; i < quizquestions.length; i++) {
         var question = quizquestions[i].question.
-                        replace(quizquestions[i].answer, "__________");
+        replace(quizquestions[i].answer, "__________");
         var options = quizquestions[i].opt;
 
         // Create a div for each question
         var questionDiv = document.createElement('div');
-        questionDiv.innerHTML = '<p>' + (i+1) + '. ' + question + '</p>';
+        questionDiv.innerHTML = '<p>' + (i + 1) + '. ' + question + '</p>';
 
         // Create radio buttons for each option
         for (var j = 0; j < options.length; j++) {
@@ -60,8 +85,8 @@ function prepareQuiz(quizquestions) {
 
 // Attach click event listener to submit button
 var submitBtn = document.getElementById('submit-btn');
-submitBtn.addEventListener('click', function() {
-	submitQuiz();
+submitBtn.addEventListener('click', function () {
+    submitQuiz();
 });
 
 // Check quiz answers on submit
@@ -81,31 +106,34 @@ submitBtn.addEventListener('click', function() {
 
 function submitQuiz() {
     let correctAnswers = []
-	var result = document.getElementById('result');
-	for (var i = 0; i < quizquestions.length; i++) {
-		var answer = quizquestions[i].answer;
-		var selected = document.querySelector('input[name="question' + i + '"]:checked');
-		if (selected !== null) {
-			if (selected.value === answer) {
-				selected.parentNode.style.textDecoration = 'underline';
-				selected.parentNode.style.textDecorationColor = 'green';
+    var result = document.getElementById('result');
+    for (var i = 0; i < quizquestions.length; i++) {
+        var answer = quizquestions[i].answer;
+        var selected = document.querySelector('input[name="question' + i + '"]:checked');
+        if (selected !== null) {
+            if (selected.value === answer) {
+                selected.parentNode.style.textDecoration = 'underline';
+                selected.parentNode.style.textDecorationColor = 'green';
                 correctAnswers.push(answer)
-			} else {
-				selected.parentNode.style.textDecoration = 'underline';
-				selected.parentNode.style.textDecorationColor = 'red';
-				var correctOption = selected.parentNode.parentNode.querySelector('input[value="' + answer + '"]');
-				correctOption.parentNode.style.textDecoration = 'underline';
-				correctOption.parentNode.style.textDecorationColor = 'green';
-			}
-		} else {
-			var correctOption = document.querySelector('input[name="question' + i + '"][value="' + answer + '"]');
-			correctOption.parentNode.style.textDecoration = 'underline';
-			correctOption.parentNode.style.textDecorationColor = 'green';
-		}
-	}
-	result.innerHTML = 'Quiz submitted!';
-	submitBtn.style.display = 'none';
-    const data = {dbSize: dbSize, correctAnswers: correctAnswers}
+            } else {
+                selected.parentNode.style.textDecoration = 'underline';
+                selected.parentNode.style.textDecorationColor = 'red';
+                var correctOption = selected.parentNode.parentNode.querySelector('input[value="' + answer + '"]');
+                correctOption.parentNode.style.textDecoration = 'underline';
+                correctOption.parentNode.style.textDecorationColor = 'green';
+            }
+        } else {
+            var correctOption = document.querySelector('input[name="question' + i + '"][value="' + answer + '"]');
+            correctOption.parentNode.style.textDecoration = 'underline';
+            correctOption.parentNode.style.textDecorationColor = 'green';
+        }
+    }
+    result.innerHTML = 'Quiz submitted!';
+    submitBtn.style.display = 'none';
+    const data = {
+        dbSize: dbSize,
+        correctAnswers: correctAnswers
+    }
     chrome.runtime.sendMessage({
         action: "submitQuiz",
         data: data
@@ -113,4 +141,3 @@ function submitQuiz() {
         console.log(response)
     });
 }
-
