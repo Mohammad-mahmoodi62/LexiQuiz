@@ -1,4 +1,31 @@
 let db = null;
+// const request = window.indexedDB.open("LexiDB", 2);
+
+// request.onupgradeneeded = migration;
+
+function migration(event) {
+    console.log('migration started')
+    var request = event.target
+    var db = request.result
+    var txn = request.transaction;
+    var store = txn.objectStore('savedWord')
+    store.createIndex("timeStamp", "timeStamp", {
+        unique: false
+    });
+
+    getAllRequest = store.getAll()
+    getAllRequest.onsuccess = (event) => {
+        let datas = event.target.result;
+        shuffleArray(datas);
+        shuffleArray(datas);
+        for (const data of datas){
+            data.timeStamp = Date.now()
+            store.put(data)
+        }
+        console.log('migration ended')
+    }
+    
+}
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.log("My Extension log: received a message and the action is " + request.action +
@@ -60,19 +87,10 @@ window.addEventListener("unload", function () {
 
 function addWordToDB(word) {
     word = word.trimRight()
-    const request = window.indexedDB.open("LexiDB", 1);
+    const request = window.indexedDB.open("LexiDB", 2);
 
-    request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-
-        const savedWordStore = db.createObjectStore("savedWord", {
-            keyPath: "word"
-        });
-
-        savedWordStore.createIndex("searchCount", "searchCount", {
-            unique: false
-        });
-    };
+    request.onupgradeneeded = migration;
+    
 
     request.onsuccess = (event) => {
         console.log("Database initialized successfully");
@@ -111,7 +129,8 @@ function addingToDB(word) {
         } else {
             const data = {
                 searchCount: 1,
-                word: word
+                word: word,
+                timeStamp: Date.now()
             };
 
             const addRequest = objectStore.add(data);
@@ -139,7 +158,7 @@ function addingToDB(word) {
 }
 
 function deleteWordFromDB(word) {
-    const request = window.indexedDB.open("LexiDB", 1);
+    const request = window.indexedDB.open("LexiDB", 2);
     request.onsuccess = (event) => {
         console.log("Database initialized successfully");
         db = event.target.result;
@@ -167,7 +186,7 @@ function deleteWordFromDB(word) {
 function getFromDB() {
     return new Promise((resolve, reject) => {
         // Open the database
-        const request = window.indexedDB.open("LexiDB", 1);
+        const request = window.indexedDB.open("LexiDB", 2);
 
         // Handle database open success
         request.onsuccess = (event) => {
@@ -182,8 +201,10 @@ function getFromDB() {
 
             // Handle getAll success
             getAllRequest.onsuccess = (event) => {
+                var datas = event.target.result
+                datas.sort((a, b) => a.timeStamp - b.timeStamp)
                 // Get the first 20 items in the array
-                sendData = {words: event.target.result.slice(0, 20),
+                sendData = {words: datas.slice(0, 20),
                 dbSize: event.target.result.length}
                 const data = sendData
 
@@ -242,7 +263,7 @@ function shuffleArray(array) {
 async function getFromDB2(quizType) {
     return new Promise((resolve, reject) => {
         // Open the database
-        const request = window.indexedDB.open("LexiDB", 1);
+        const request = window.indexedDB.open("LexiDB", 2);
 
         // Handle database open success
         request.onsuccess = (event) => {
@@ -259,12 +280,16 @@ async function getFromDB2(quizType) {
             getAllRequest.onsuccess = async (event) => {
                 // Get the first 20 items in the array
                 let data = event.target.result
+                data.sort((a, b) => a.timeStamp - b.timeStamp)
                 if(quizType === "random") {
                     shuffleArray(data);
                 }
                 let dataBaseSize = data.length
 
-                let quizArr = data.slice(0, 10)
+                let quizArr = data.slice(0, 20)
+                if(quizType === "recent") {
+                    shuffleArray(quizArr);
+                }
                 shuffleArray(data)
                 let quizOpt = data.slice(0, 20)
                 db.close()
@@ -278,7 +303,7 @@ async function getFromDB2(quizType) {
                         return example;
                     }));
 
-                    for (let i = 0; i < 10; i++) {
+                    for (let i = 0; i < 20; i++) {
                         const question = {
                             question: examplesArr[i],
                             answer: quizArr[i].word,
@@ -324,19 +349,10 @@ async function getFromDB2(quizType) {
 
 // data = {dbSize, correctAnswers}
 function updateDBafterAnswer(data) {
-    const request = window.indexedDB.open("LexiDB", 1);
+    const request = window.indexedDB.open("LexiDB", 2);
 
-    request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-
-        const savedWordStore = db.createObjectStore("savedWord", {
-            keyPath: "word"
-        });
-
-        savedWordStore.createIndex("searchCount", "searchCount", {
-            unique: false
-        });
-    };
+    request.onupgradeneeded = migration;
+    
 
     request.onsuccess = (event) => {
         console.log("Database initialized successfully");

@@ -62,8 +62,9 @@ function prepareQuiz(quizquestions) {
 
     // Display quiz questions and options
     for (var i = 0; i < quizquestions.length; i++) {
-        var question = quizquestions[i].question.
-        replace(quizquestions[i].answer, "__________");
+        var question = quizquestions[i].question;
+        question = question.toLowerCase();
+        question = question.replace(quizquestions[i].answer.toLowerCase(), "__________");
         var options = quizquestions[i].opt;
 
         // Create a div for each question
@@ -72,7 +73,7 @@ function prepareQuiz(quizquestions) {
 
         // Create radio buttons for each option
         for (var j = 0; j < options.length; j++) {
-            var option = options[j];
+            var option = options[j].toLowerCase();
             var label = document.createElement('label');
             label.innerHTML = '<input type="radio" name="question' + i + '" value="' + option + '"> ' + option;
             questionDiv.appendChild(label);
@@ -111,19 +112,19 @@ function submitQuiz() {
         var answer = quizquestions[i].answer;
         var selected = document.querySelector('input[name="question' + i + '"]:checked');
         if (selected !== null) {
-            if (selected.value === answer) {
+            if (selected.value === answer.toLowerCase()) {
                 selected.parentNode.style.textDecoration = 'underline';
                 selected.parentNode.style.textDecorationColor = 'green';
                 correctAnswers.push(answer)
             } else {
                 selected.parentNode.style.textDecoration = 'underline';
                 selected.parentNode.style.textDecorationColor = 'red';
-                var correctOption = selected.parentNode.parentNode.querySelector('input[value="' + answer + '"]');
+                var correctOption = selected.parentNode.parentNode.querySelector('input[value="' + answer.toLowerCase() + '"]');
                 correctOption.parentNode.style.textDecoration = 'underline';
                 correctOption.parentNode.style.textDecorationColor = 'green';
             }
         } else {
-            var correctOption = document.querySelector('input[name="question' + i + '"][value="' + answer + '"]');
+            var correctOption = document.querySelector('input[name="question' + i + '"][value="' + answer.toLowerCase() + '"]');
             correctOption.parentNode.style.textDecoration = 'underline';
             correctOption.parentNode.style.textDecorationColor = 'green';
         }
