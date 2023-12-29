@@ -107,6 +107,7 @@ submitBtn.addEventListener('click', function () {
 
 function submitQuiz() {
     let correctAnswers = []
+    let wrongAnswers = []
     var result = document.getElementById('result');
     for (var i = 0; i < quizquestions.length; i++) {
         var answer = quizquestions[i].answer;
@@ -122,18 +123,21 @@ function submitQuiz() {
                 var correctOption = selected.parentNode.parentNode.querySelector('input[value="' + answer.toLowerCase() + '"]');
                 correctOption.parentNode.style.textDecoration = 'underline';
                 correctOption.parentNode.style.textDecorationColor = 'green';
+                wrongAnswers.push(answer)
             }
         } else {
             var correctOption = document.querySelector('input[name="question' + i + '"][value="' + answer.toLowerCase() + '"]');
             correctOption.parentNode.style.textDecoration = 'underline';
             correctOption.parentNode.style.textDecorationColor = 'green';
+            wrongAnswers.push(answer)
         }
     }
     result.innerHTML = 'Quiz submitted!';
     submitBtn.style.display = 'none';
     const data = {
         dbSize: dbSize,
-        correctAnswers: correctAnswers
+        correctAnswers: correctAnswers,
+        wrongAnswers: wrongAnswers
     }
     chrome.runtime.sendMessage({
         action: "submitQuiz",

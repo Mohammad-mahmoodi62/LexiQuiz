@@ -1,0 +1,14 @@
+/* Add this CSS in a CSS file included in your extension */
+
+.speaker.amefile.hideOnAmp.with-icon {
+    margin-right: 0px; /* Create space for the icon on the right */
+  }
+  
+  .icon-class {
+    cursor: pointer;
+    margin-top: -4px;
+    width: 25px;
+    height: 25px;
+  }
+  
+  

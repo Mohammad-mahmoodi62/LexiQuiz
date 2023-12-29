@@ -379,7 +379,7 @@ function checkAnswers(data) {
                 const deleteRequest = objectStore.delete(word);
 
                 deleteRequest.onsuccess = (event) => {
-                    console.log("My Extension log: Data deleted successfully");
+                    console.log("My Extension log: " + word + " deleted successfully");
                 };
 
                 deleteRequest.onerror = (event) => {
@@ -391,13 +391,36 @@ function checkAnswers(data) {
                 const addRequest = objectStore.put(savedWordObj);
 
                 addRequest.onsuccess = function (event) {
-                    console.log("My Extension log: Data added successfully");
+                    console.log("My Extension log: " + word + " decreased");
                 };
                 addRequest.onerror = function (event) {
                     console.error("My Extension log: Failed to update data:",
                         event.target.error);
                 };
             }
+        };
+
+        getRequest.onerror = function (event) {
+            console.error("My Extension log: Failed to get data:",
+                event.target.error);
+        };
+    };
+    for (const word of data.wrongAnswers) {
+
+        const getRequest = objectStore.get(word);
+
+        getRequest.onsuccess = function (event) {
+            const savedWordObj = event.target.result;
+                savedWordObj.searchCount++;
+                const addRequest = objectStore.put(savedWordObj);
+
+                addRequest.onsuccess = function (event) {
+                    console.log("My Extension log: " + word + " increased");
+                };
+                addRequest.onerror = function (event) {
+                    console.error("My Extension log: Failed to update data:",
+                        event.target.error);
+                };
         };
 
         getRequest.onerror = function (event) {
