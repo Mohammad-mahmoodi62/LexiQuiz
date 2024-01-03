@@ -1,4 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+*{
+  font-family: 'Poppins', sans-serif;
+}
+
 body {
     width: 400px;
-    height: 300px;
+    height: 330px;
+    color: #fff;
+    background: #09001d;
+    overflow: hidden;
   }
+
+  .popup-container {
+    width: 400px;
+    height: 225px;
+    color: #fff;
+    background: #09001d;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Adjust this property based on your layout needs */
+    padding: 10px; /* Optional padding for the footer */
+    border-top: 2px solid #c40094;
+  }
+  
+  .footer .take-quiz {
+    width: 150px;
+    height: 50px;
+    background: #c40094;
+    border: 2px solid #fff;
+    outline: none;
+    border-radius: 30px;
+    box-shadow: 0 0 10px #c40094;
+    font-size: 18px;
+    color: #fff;
+    letter-spacing: 1px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .5;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .take-quiz.inactive {
+    pointer-events: none;
+    background: #09001d;
+  }
+
+  .take-quiz:hover{
+    background: #09001d;
+    box-shadow: none;
+  }
+
+  .number-section {
+    font-size: 18px;
+    color: #fff;
+    border-bottom: 2px solid #c40094;
+    padding-bottom: 5px;
+  }
+
+  .number-section .size {
+    float: right;
+    padding-right: 2px;
+    font-size: 18px;
+  }
+
+  .item-name {
+    font-size: 18px;
+    color: #fff;
+    padding-bottom: 5px;
+  }
+
+.item-number {
+    float: right;
+    padding-right: 2px;
+    font-size: 18px;
+  }
+
+  .item {
+    padding-top: 4px;
+    border-bottom: 1px dashed #c40094;
+}
+.last{
+  border-bottom: none;
+}

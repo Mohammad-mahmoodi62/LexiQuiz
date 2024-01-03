@@ -11,23 +11,39 @@
 // document.body.appendChild(newDiv);
 
 // Send the "getData" action to the background script
+const quizBtn = document.querySelector(".take-quiz");
 chrome.runtime.sendMessage({
     action: "getData"
 }, function (response) {
     if (response.success) {
-        const data = response.data;
-        data.words.forEach(addItemToList);
-        const numberElement = document.querySelector('#size');
-        numberElement.textContent = data.dbSize;
+        console.log(response);
+        const datas = response.data;
+        if (datas.dbSize < 10) {
+          quizBtn.classList.add('inactive');
+        }
+        // datas.words.forEach(addItemToList);
+        for(var i = 0; i < datas.words.length; i++){
+          if (i === datas.words.length - 1){
+            addItemToList(datas.words[i], true);
+          }
+          else {
+            addItemToList(datas.words[i], false);
+          }
+        }
+        const numberElement = document.querySelector('.size');
+        numberElement.textContent = datas.dbSize;
     } else {
         console.error("Error getting data from database: " + response.error);
     }
 });
 
-function addItemToList(item) {
+function addItemToList(item, lastItem=false) {
   const itemList = document.getElementById('item-list');
   const newItem = document.createElement('div');
   newItem.classList.add('item');
+  if(lastItem){
+    newItem.classList.add('last');
+  }
 
   const itemName = document.createElement('span');
   itemName.classList.add('item-name');
@@ -53,17 +69,17 @@ function loadPopup(url) {
     container.appendChild(iframe);
   }
 
-document.getElementById("take-quiz").addEventListener('click', function() {
-    loadPopup('quiz-popup.html');
+  quizBtn.addEventListener('click', function() {
+    loadPopup('quiz.html');
   });
 
 document.addEventListener('DOMContentLoaded', function() {
-    var createTabButton = document.getElementById("take-quiz");
+    var createTabButton = document.querySelector(".take-quiz");
     createTabButton.addEventListener('click', createNewTab);
   });
 
   function createNewTab() {
-    chrome.tabs.create({ url: chrome.extension.getURL('popup/quiz-popup.html') }, 
+    chrome.tabs.create({ url: chrome.extension.getURL('popup/quiz.html') }, 
     function (tab) {
       chrome.tabs.sendMessage(tab.id, { action: "someAction" });
     });

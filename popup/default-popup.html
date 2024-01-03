@@ -3,40 +3,15 @@
   <head>
     <title>My Extension Popup</title>
     <link rel="stylesheet" href="default-popup.css">
-    <style>
-      /* Style for the number in the top right corner */
-      #number-section {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 18px;
-      }
-
-      /* Style for the list of items */
-      #item-list {
-        margin-top: 40px;
-      }
-
-      /* Style for each item in the list */
-      .item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-
-      /* Style for item name */
-      .item-name {
-        margin-right: 10px;
-        font-weight: bold;
-      }
-    </style>
   </head>
   <body>
-    <div id="number-section">DataBase size: <span id="size">0</span></div>
-    <button id="take-quiz">Take Quiz</button>
-    <div id="popup-container">
+    <div class="number-section">DataBase size: <span class="size">0</span></div>
+    <div class="popup-container">
       <div id="item-list"></div>
     </div>
+    <footer class="footer">
+      <button class="take-quiz">Take Quiz</button>
+    </footer>
     <script src="default-popup.js"></script>
   </body>
 </html>
