@@ -2,30 +2,54 @@ let db = null;
 // const request = window.indexedDB.open("LexiDB", 2);
 
 // request.onupgradeneeded = migration;
+let questionsLength = 10;
 
 function migration(event) {
-    console.log('migration started')
-    var request = event.target
-    var db = request.result
+    console.log('Migration started');
+
+    var request = event.target;
+    var db = request.result;
     var txn = request.transaction;
-    var store = txn.objectStore('savedWord')
-    store.createIndex("timeStamp", "timeStamp", {
+
+    // Check if the object store exists
+    if (!db.objectStoreNames.contains('savedWord')) {
+        console.log('Creating "savedWord" object store');
+
+        // If it doesn't exist, create it
+        const savedWordStore = db.createObjectStore('savedWord', {
+            keyPath: 'word',
+            unique: false
+        });
+
+        // Create additional index and fields
+        savedWordStore.createIndex('searchCount', 'searchCount', {
+            unique: false
+        });
+    }
+
+    // Continue with the existing migration logic
+    var store = txn.objectStore('savedWord');
+
+    // Add additional index and fields during upgrade
+    store.createIndex('timeStamp', 'timeStamp', {
         unique: false
     });
 
-    getAllRequest = store.getAll()
+    getAllRequest = store.getAll();
     getAllRequest.onsuccess = (event) => {
         let datas = event.target.result;
         shuffleArray(datas);
         shuffleArray(datas);
-        for (const data of datas){
-            data.timeStamp = Date.now()
-            store.put(data)
+
+        for (const data of datas) {
+            data.timeStamp = Date.now();
+            store.put(data);
         }
-        console.log('migration ended')
-    }
-    
+
+        console.log('Migration ended');
+    };
 }
+
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.log("My Extension log: received a message and the action is " + request.action +
@@ -37,13 +61,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             message: "Data saved successfully"
         });
     } else if (request.action === "clickedSugesstion") {
-        if (request.data.length !== 0) {
-            addWordToDB(request.data);
-
-            sendResponse({
-                message: "Data saved successfully"
+        addWordToDB(request.data)
+            .then((message) => {
+                sendResponse({ message });
+            })
+            .catch((error) => {
+                sendResponse({ message: "Error: " + error });
             });
-        }
+        return true;
     } else if (request.action === "getData") {
         getFromDB().then((data) => {
             sendResponse({
@@ -86,6 +111,7 @@ window.addEventListener("unload", function () {
 });
 
 function addWordToDB(word) {
+    return new Promise((resolve, reject) => {
     word = word.trimRight()
     const request = window.indexedDB.open("LexiDB", 2);
 
@@ -95,15 +121,17 @@ function addWordToDB(word) {
     request.onsuccess = (event) => {
         console.log("Database initialized successfully");
         db = event.target.result;
-        addingToDB(word)
+        var response = '';
+        addingToDB(word, resolve, reject);
     };
 
     request.onerror = (event) => {
         console.error("My Extension log: Error initializing database", event.target.error);
     };
+});
 }
 
-function addingToDB(word) {
+function addingToDB(word, resolve, reject) {
     const transaction = db.transaction(["savedWord"], "readwrite");
     const objectStore = transaction.objectStore("savedWord");
 
@@ -119,9 +147,11 @@ function addingToDB(word) {
 
             addRequest.onsuccess = function (event) {
                 console.log("My Extension log: Data added successfully");
+                const response = {message :`${word}'s quiz counter has increased.`};
                 db.close();
                 db = null;
                 console.log("My Extension log: Database closed successfully");
+                resolve(response);
             };
             addRequest.onerror = function (event) {
                 console.error("My Extension log: Failed to update data:", event.target.error);
@@ -137,9 +167,11 @@ function addingToDB(word) {
 
             addRequest.onsuccess = () => {
                 console.log("My Extension log: Data added successfully");
+                const response = {message :`${word} has been successfully added to the database`};
                 db.close();
                 db = null;
                 console.log("My Extension log: Database closed successfully");
+                resolve(response);
             };
 
             addRequest.onerror = (event) => {
@@ -159,6 +191,7 @@ function addingToDB(word) {
 
 function deleteWordFromDB(word) {
     const request = window.indexedDB.open("LexiDB", 2);
+    request.onupgradeneeded = migration;
     request.onsuccess = (event) => {
         console.log("Database initialized successfully");
         db = event.target.result;
@@ -187,6 +220,7 @@ function getFromDB() {
     return new Promise((resolve, reject) => {
         // Open the database
         const request = window.indexedDB.open("LexiDB", 2);
+        request.onupgradeneeded = migration;
 
         // Handle database open success
         request.onsuccess = (event) => {
@@ -202,9 +236,9 @@ function getFromDB() {
             // Handle getAll success
             getAllRequest.onsuccess = (event) => {
                 var datas = event.target.result
-                datas.sort((a, b) => a.timeStamp - b.timeStamp)
-                // Get the first 20 items in the array
-                sendData = {words: datas.slice(0, 20),
+                datas.sort((a, b) => b.timeStamp - a.timeStamp)
+                // Get the first 7 items in the array
+                sendData = {words: datas.slice(0, 7),
                 dbSize: event.target.result.length}
                 const data = sendData
 
@@ -264,6 +298,7 @@ async function getFromDB2(quizType) {
     return new Promise((resolve, reject) => {
         // Open the database
         const request = window.indexedDB.open("LexiDB", 2);
+        request.onupgradeneeded = migration;
 
         // Handle database open success
         request.onsuccess = (event) => {
@@ -286,12 +321,12 @@ async function getFromDB2(quizType) {
                 }
                 let dataBaseSize = data.length
 
-                let quizArr = data.slice(0, 20)
+                let quizArr = data.slice(0, questionsLength)
                 if(quizType === "recent") {
                     shuffleArray(quizArr);
                 }
                 shuffleArray(data)
-                let quizOpt = data.slice(0, 20)
+                let quizOpt = data.slice(0, questionsLength)
                 db.close()
                 db = null
                 let quizQuestions = []
@@ -303,7 +338,13 @@ async function getFromDB2(quizType) {
                         return example;
                     }));
 
-                    for (let i = 0; i < 20; i++) {
+                    for (let i = 0; i < questionsLength; i++) {
+                        var temp = null;
+                        if (quizOpt.includes(quizArr[i])) {
+                            // Item found, remove it
+                            quizOpt.splice(quizOpt.indexOf(quizArr[i]), 1);
+                            temp = quizArr[i];
+                        }
                         const question = {
                             question: examplesArr[i],
                             answer: quizArr[i].word,
@@ -312,6 +353,9 @@ async function getFromDB2(quizType) {
                         question.opt.push(question.answer)
                         shuffleArray(question.opt)
                         quizQuestions.push(question)
+                        if(temp) {
+                            quizOpt.push(temp)
+                        }
                         shuffleArray(quizOpt)
                     }
 
